@@ -9,6 +9,7 @@ import android.arch.persistence.room.Update;
 import java.util.List;
 
 import asdevs.expensebook.model.Expense;
+import asdevs.expensebook.model.User;
 
 @Dao
 public interface IDataBase {
@@ -16,12 +17,24 @@ public interface IDataBase {
     @Query("SELECT * FROM expense")
     List<Expense> getAllExpenses();
 
+    @Query("SELECT * FROM user")
+    List<User> getAllUsers();
+
     @Insert
     void createExpense(Expense expense);
+
+    @Insert
+    void createUser(User user);
 
     @Delete
     void deleteExpense(Expense expense);
 
+    @Delete
+    void deleteUser(User user);
+
     @Update
     void updateExpense(Expense expense);
+
+    @Update
+    void updateUser(User user);
 }

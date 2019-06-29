@@ -1,8 +1,7 @@
-package asdevs.expensebook;
+package asdevs.expensebook.fragment;
 
 import android.app.DatePickerDialog;
 import android.app.Dialog;
-import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.TextInputEditText;
@@ -22,6 +21,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 
+import asdevs.expensebook.R;
 import asdevs.expensebook.database.DataBaseClient;
 import asdevs.expensebook.model.Expense;
 
@@ -164,7 +164,8 @@ public class AddExpenseFragment extends DialogFragment {
                 protected void onPostExecute(Void aVoid) {
                     super.onPostExecute(aVoid);
                     Toast.makeText(view.getContext(), "Expense Successfully Created!", Toast.LENGTH_LONG).show();
-                    ((MainActivity)getActivity()).getAllExpenses();
+                    ExpenseFragment ef = (ExpenseFragment)getParentFragment();
+                    ef.getAllExpenses();
                     dismiss();
                 }
             }
@@ -207,7 +208,8 @@ public class AddExpenseFragment extends DialogFragment {
                 protected void onPostExecute(Void aVoid) {
                     super.onPostExecute(aVoid);
                     Toast.makeText(view.getContext(), "Expense Successfully Updated!", Toast.LENGTH_LONG).show();
-                    ((MainActivity)getActivity()).getAllExpenses();
+                    ExpenseFragment ef = (ExpenseFragment)getParentFragment();
+                    ef.getAllExpenses();
                     dismiss();
                 }
             }

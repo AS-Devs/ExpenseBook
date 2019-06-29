@@ -1,9 +1,10 @@
-package asdevs.expensebook;
+package asdevs.expensebook.fragment;
 
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DefaultItemAnimator;
@@ -12,51 +13,60 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.support.v7.widget.helper.ItemTouchHelper;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import asdevs.expensebook.R;
 import asdevs.expensebook.adapter.ExpenseAdapter;
 import asdevs.expensebook.database.DataBaseClient;
 import asdevs.expensebook.model.Expense;
 
-public class MainActivity extends AppCompatActivity {
+public class ExpenseFragment extends Fragment {
 
     private List<Expense> expenses = new ArrayList<>();
     private RecyclerView recyclerView;
-    //private ExpenseAdapter mAdapter;
     private int lastDeletedItemPosition;
     private Expense lastDeletedItem;
     private View view;
 
+    public ExpenseFragment() {
+        // Required empty public constructor
+    }
+
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+    }
 
-        //mAdapter = new ExpenseAdapter(expenses);
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        view = inflater.inflate(R.layout.activity_main, container, false);
+        Toolbar toolbar = view.findViewById(R.id.toolbar);
+        ((AppCompatActivity)getActivity()).setSupportActionBar(toolbar);
+        toolbar.setSubtitle("Manage Expenses");
 
-        recyclerView = findViewById(R.id.recyclerView);
+        // Set Up Recycler View
+        recyclerView = view.findViewById(R.id.recyclerView);
         recyclerView.hasFixedSize();
-        recyclerView.addItemDecoration(new DividerItemDecoration(this, LinearLayoutManager.VERTICAL));
+        recyclerView.addItemDecoration(new DividerItemDecoration(view.getContext(), LinearLayoutManager.VERTICAL));
         recyclerView.setItemAnimator(new DefaultItemAnimator());
 
         // Recycler view swipe gesture
         ItemTouchHelper.SimpleCallback simpleItemTouchCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.RIGHT) {
             @Override
             public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
-                //awesome code when user grabs recycler card to reorder
                 return false;
             }
 
             @Override
             public void clearView(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder) {
                 super.clearView(recyclerView, viewHolder);
-                //awesome code to run when user drops card and completes reorder
             }
 
             @Override
@@ -66,9 +76,9 @@ public class MainActivity extends AppCompatActivity {
                     lastDeletedItemPosition = viewHolder.getAdapterPosition();
                     lastDeletedItem = expenses.get(lastDeletedItemPosition);
                     expenses.remove(lastDeletedItemPosition);
-                    recyclerView.setAdapter(new ExpenseAdapter(expenses, MainActivity.this));
+                    recyclerView.setAdapter(new ExpenseAdapter(expenses, ExpenseFragment.this));
                     deleteExpense(lastDeletedItem);
-                    //undoSnackBar();
+                    undoSnackBar();
                 }
             }
         };
@@ -76,31 +86,16 @@ public class MainActivity extends AppCompatActivity {
         ItemTouchHelper itemTouchHelper = new ItemTouchHelper(simpleItemTouchCallback);
         itemTouchHelper.attachToRecyclerView(recyclerView);
 
-        //prepareDummyData();
         getAllExpenses();
 
-        FloatingActionButton fab = findViewById(R.id.fab);
+        FloatingActionButton fab = view.findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 buildDialogFragment();
             }
         });
-    }
-
-    private void undoSnackBar() {
-        view = findViewById(R.id.parentViewGroup);
-        Snackbar snackbar = Snackbar.make(view, "1 Item Removed!",
-                Snackbar.LENGTH_LONG);
-        snackbar.setAction("UNDO", new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                expenses.add(lastDeletedItemPosition, lastDeletedItem);
-                recyclerView.setAdapter(new ExpenseAdapter(expenses, MainActivity.this));
-                reAddExpense(lastDeletedItem);
-            }
-        });
-        snackbar.show();
+        return view;
     }
 
     private void buildDialogFragment() {
@@ -109,7 +104,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             protected Void doInBackground(Void... voids) {
                 AddExpenseFragment dialog = new AddExpenseFragment();
-                FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+                FragmentTransaction ft = getChildFragmentManager().beginTransaction();
                 dialog.show(ft, AddExpenseFragment.TAG);
                 return null;
             }
@@ -123,7 +118,6 @@ public class MainActivity extends AppCompatActivity {
         df.execute();
     }
 
-
     public void getAllExpenses() {
 
         class GetAllExpense extends AsyncTask<Void, Void, List<Expense>> {
@@ -131,7 +125,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             protected List<Expense> doInBackground(Void... voids) {
                 //getting from database
-                return DataBaseClient.getInstance(getApplicationContext()).getDataBase()
+                return DataBaseClient.getInstance(view.getContext()).getDataBase()
                         .iDataBase()
                         .getAllExpenses();
             }
@@ -140,10 +134,10 @@ public class MainActivity extends AppCompatActivity {
             protected void onPostExecute(List<Expense> exps) {
                 super.onPostExecute(exps);
                 if (exps == null || exps.size() == 0) {
-                    Toast.makeText(getApplicationContext(), "No Data Found!", Toast.LENGTH_LONG).show();
+                    Toast.makeText(view.getContext(), "No Data Found!", Toast.LENGTH_LONG).show();
                 } else {
                     expenses = exps;
-                    recyclerView.setAdapter(new ExpenseAdapter(expenses, MainActivity.this));
+                    recyclerView.setAdapter(new ExpenseAdapter(expenses, ExpenseFragment.this));
                 }
             }
         }
@@ -158,7 +152,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             protected Void doInBackground(Void... voids) {
-                DataBaseClient.getInstance(getApplicationContext()).getDataBase()
+                DataBaseClient.getInstance(view.getContext()).getDataBase()
                         .iDataBase()
                         .deleteExpense(expense);
                 return null;
@@ -174,13 +168,28 @@ public class MainActivity extends AppCompatActivity {
         de.execute();
     }
 
+    private void undoSnackBar() {
+        //view = view.findViewById(R.id.parentViewGroup);
+        Snackbar snackbar = Snackbar.make(view, "1 Item Removed!",
+                Snackbar.LENGTH_LONG);
+        snackbar.setAction("UNDO", new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                expenses.add(lastDeletedItemPosition, lastDeletedItem);
+                recyclerView.setAdapter(new ExpenseAdapter(expenses, ExpenseFragment.this));
+                reAddExpense(lastDeletedItem);
+            }
+        });
+        snackbar.show();
+    }
+
     private void reAddExpense(final Expense expense) {
 
         class ReAddExpense extends AsyncTask<Void, Void, Void> {
 
             @Override
             protected Void doInBackground(Void... voids) {
-                DataBaseClient.getInstance(getApplicationContext()).getDataBase()
+                DataBaseClient.getInstance(view.getContext()).getDataBase()
                         .iDataBase()
                         .createExpense(expense);
                 return null;
@@ -189,12 +198,17 @@ public class MainActivity extends AppCompatActivity {
             @Override
             protected void onPostExecute(Void aVoid) {
                 super.onPostExecute(aVoid);
-                Snackbar undoSnackbar = Snackbar.make(view, "Item Restored",
+                Snackbar undoSnackBar = Snackbar.make(view, "Item Restored",
                         Snackbar.LENGTH_LONG);
-                undoSnackbar.show();
+                undoSnackBar.show();
             }
         }
         ReAddExpense rae = new ReAddExpense();
         rae.execute();
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
     }
 }

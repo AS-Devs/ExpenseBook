@@ -15,17 +15,17 @@ import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
 
-import asdevs.expensebook.AddExpenseFragment;
-import asdevs.expensebook.MainActivity;
 import asdevs.expensebook.R;
+import asdevs.expensebook.fragment.AddExpenseFragment;
+import asdevs.expensebook.fragment.ExpenseFragment;
 import asdevs.expensebook.model.Expense;
 
 public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ViewHolder> {
 
     private List<Expense> expenses;
-    private MainActivity context;
+    private ExpenseFragment context;
 
-    public ExpenseAdapter(List<Expense> expenses, MainActivity context) {
+    public ExpenseAdapter(List<Expense> expenses, ExpenseFragment context) {
         this.expenses = expenses;
         this.context = context;
     }
@@ -81,7 +81,7 @@ public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ViewHold
                     b.putSerializable("expense", expense);
                     AddExpenseFragment expenseFragment = new AddExpenseFragment();
                     expenseFragment.setArguments(b);
-                    FragmentTransaction ft = context.getSupportFragmentManager().beginTransaction();
+                    FragmentTransaction ft = context.getChildFragmentManager().beginTransaction();
                     expenseFragment.show(ft, "UpdateExpense");
                 }
             });
