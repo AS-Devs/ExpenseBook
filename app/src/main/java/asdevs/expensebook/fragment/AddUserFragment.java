@@ -74,8 +74,8 @@ public class AddUserFragment extends DialogFragment {
     }
 
     private void CreateUser(final View view) {
-        if (nameText.getText() == null) {
-            Toast.makeText(view.getContext(), "Fill in the form Correctly!", Toast.LENGTH_LONG).show();
+        if (nameText.getText().toString().trim().length() == 0) {
+            Toast.makeText(view.getContext(), "Add a User First!", Toast.LENGTH_LONG).show();
 
         } else {
             String name = nameText.getText().toString();

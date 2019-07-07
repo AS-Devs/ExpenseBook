@@ -166,8 +166,8 @@ public class AddExpenseFragment extends DialogFragment {
     }
 
     private void CreateExpense(final View view){
-        if(nameText.getText() == null || dateText.getText() == null || amountText.getText() == null || typeText.getText() == null){
-            Toast.makeText(view.getContext(), "Fill in the form Correctly!", Toast.LENGTH_LONG).show();
+        if(nameText.getText().toString().trim().length() == 0 || dateText.getText().toString().trim().length() == 0 || amountText.getText().toString().trim().length() == 0 || typeText.getText().toString().trim().length() == 0){
+            Toast.makeText(view.getContext(), "Add The Expense Correctly!", Toast.LENGTH_LONG).show();
         }
         else{
             String name = nameText.getText().toString();
