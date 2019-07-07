@@ -6,6 +6,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.DividerItemDecoration;
@@ -21,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import asdevs.expensebook.R;
+import asdevs.expensebook.adapter.UserAdapter;
 import asdevs.expensebook.database.DataBaseClient;
 import asdevs.expensebook.model.User;
 
@@ -52,14 +54,36 @@ public class UserFragment extends Fragment {
         recyclerView.addItemDecoration(new DividerItemDecoration(view.getContext(), LinearLayoutManager.VERTICAL));
         recyclerView.setItemAnimator(new DefaultItemAnimator());
 
+        getAllUsers();
+
         FloatingActionButton fab = view.findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //buildDialogFragment();
+                buildDialogFragment();
             }
         });
         return view;
+    }
+
+    private void buildDialogFragment() {
+
+        class DialogFragment extends AsyncTask<Void, Void, Void> {
+            @Override
+            protected Void doInBackground(Void... voids) {
+                AddUserFragment dialog = new AddUserFragment();
+                FragmentTransaction ft = getChildFragmentManager().beginTransaction();
+                dialog.show(ft, AddUserFragment.TAG);
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(Void aVoid) {
+                super.onPostExecute(aVoid);
+            }
+        }
+        DialogFragment df = new DialogFragment();
+        df.execute();
     }
 
     public void getAllUsers() {
@@ -80,6 +104,7 @@ public class UserFragment extends Fragment {
                     Toast.makeText(view.getContext(), "No Data Found!", Toast.LENGTH_LONG).show();
                 } else {
                     users = usrs;
+                    recyclerView.setAdapter(new UserAdapter(users, UserFragment.this));
                 }
             }
         }

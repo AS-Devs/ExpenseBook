@@ -2,11 +2,13 @@ package asdevs.expensebook.fragment;
 
 import android.app.DatePickerDialog;
 import android.app.Dialog;
+import android.content.DialogInterface;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.TextInputEditText;
 import android.support.design.widget.TextInputLayout;
 import android.support.v4.app.DialogFragment;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,22 +19,30 @@ import android.widget.Toast;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 import asdevs.expensebook.R;
 import asdevs.expensebook.database.DataBaseClient;
 import asdevs.expensebook.model.Expense;
+import asdevs.expensebook.model.User;
 
 public class AddExpenseFragment extends DialogFragment {
 
-    public static String TAG = "FullScreenDialog";
+    public static String TAG = "AddExpenseDialog";
     private TextInputEditText nameText, dateText, amountText, typeText;
-    private TextInputLayout dateLayout;
+    private TextInputLayout nameLayout, dateLayout;
     private Button createExpense;
     private Expense exp;
     Calendar calendar = Calendar.getInstance();
+    private View view;
+    private List<User> users = new ArrayList<>();
+    private User user = new User();
+    private String[] userNames;
+    private AlertDialog.Builder userDialog;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -46,7 +56,10 @@ public class AddExpenseFragment extends DialogFragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         super.onCreateView(inflater, container, savedInstanceState);
-        View view = inflater.inflate(R.layout.add_expense_dialog, container, false);
+        view = inflater.inflate(R.layout.add_expense_dialog, container, false);
+
+        // Get All Users
+        getAllUsers();
 
         // Toolbar
         Toolbar toolbar = view.findViewById(R.id.toolbar);
@@ -61,10 +74,14 @@ public class AddExpenseFragment extends DialogFragment {
         // Text Input IDs
         nameText = view.findViewById(R.id.nameText);
         dateText = view.findViewById(R.id.dateText);
+        nameLayout = view.findViewById(R.id.nameLayout);
         dateLayout = view.findViewById(R.id.dateLayout);
         amountText = view.findViewById(R.id.amountText);
         typeText = view.findViewById(R.id.typeText);
         createExpense = view.findViewById(R.id.create);
+
+        nameLayout.setEnabled(false);
+        nameLayout.setError("No Users Found");
 
         // Check if create or update
         if(exp == null) {
@@ -103,6 +120,22 @@ public class AddExpenseFragment extends DialogFragment {
             @Override
             public void onClick(View view) {
                 datePickerDialog.show();
+            }
+        });
+
+        nameLayout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                AlertDialog mDialog = userDialog.create();
+                mDialog.show();
+            }
+        });
+
+        nameText.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                AlertDialog mDialog = userDialog.create();
+                mDialog.show();
             }
         });
 
@@ -148,6 +181,13 @@ public class AddExpenseFragment extends DialogFragment {
                 e.printStackTrace();
             }
             final Expense expense = new Expense(name, amount, type, date);
+            for(User usr : users){
+                if(usr.getName().equals(name)){
+                    usr.setAmount(usr.getAmount() + amount);
+                    user = usr;
+                    break;
+                }
+            }
 
             class SaveExpense extends AsyncTask<Void, Void, Void> {
 
@@ -157,6 +197,9 @@ public class AddExpenseFragment extends DialogFragment {
                     DataBaseClient.getInstance(view.getContext()).getDataBase()
                             .iDataBase()
                             .createExpense(expense);
+                    DataBaseClient.getInstance(view.getContext()).getDataBase()
+                            .iDataBase()
+                            .updateUser(user);
                     return null;
                 }
 
@@ -192,6 +235,13 @@ public class AddExpenseFragment extends DialogFragment {
             }
             final Expense expense = new Expense(name, amount, type, date);
             expense.setId(exp.getId());
+            for(User usr : users){
+                if(usr.getName().equals(name)){
+                    usr.setAmount(usr.getAmount() + amount - exp.getAmount());
+                    user = usr;
+                    break;
+                }
+            }
 
             class UpdateExpense extends AsyncTask<Void, Void, Void> {
 
@@ -201,6 +251,9 @@ public class AddExpenseFragment extends DialogFragment {
                     DataBaseClient.getInstance(view.getContext()).getDataBase()
                             .iDataBase()
                             .updateExpense(expense);
+                    DataBaseClient.getInstance(view.getContext()).getDataBase()
+                            .iDataBase()
+                            .updateUser(user);
                     return null;
                 }
 
@@ -217,5 +270,56 @@ public class AddExpenseFragment extends DialogFragment {
             UpdateExpense updateExpense = new UpdateExpense();
             updateExpense.execute();
         }
+    }
+
+    private void createUserDialog(){
+        nameLayout.setEnabled(true);
+        nameLayout.setError(null);
+        userDialog = new AlertDialog.Builder(view.getContext());
+        userDialog.setTitle("Select an User");
+        userDialog.setSingleChoiceItems(userNames, -1, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                nameText.setText(userNames[i]);
+                dialogInterface.dismiss();
+            }
+        });
+        userDialog.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+    }
+
+    public void getAllUsers() {
+
+        class GetAllUsers extends AsyncTask<Void, Void, List<User>>{
+
+            @Override
+            protected List<User> doInBackground(Void... voids) {
+                return DataBaseClient.getInstance(view.getContext()).getDataBase()
+                        .iDataBase()
+                        .getAllUsers();
+            }
+
+            @Override
+            protected void onPostExecute(List<User> usrs) {
+                super.onPostExecute(usrs);
+                if (usrs == null || usrs.size() == 0) {
+                    nameLayout.setError("No Users Found");
+                } else {
+                    users = usrs;
+                    userNames = new String[users.size()];
+                    for(int i = 0; i<users.size(); i++){
+                        userNames[i] = users.get(i).getName();
+                    }
+                    createUserDialog();
+                }
+            }
+        }
+
+        GetAllUsers gau = new GetAllUsers();
+        gau.execute();
     }
 }

@@ -25,6 +25,7 @@ import asdevs.expensebook.R;
 import asdevs.expensebook.adapter.ExpenseAdapter;
 import asdevs.expensebook.database.DataBaseClient;
 import asdevs.expensebook.model.Expense;
+import asdevs.expensebook.model.User;
 
 public class ExpenseFragment extends Fragment {
 
@@ -33,6 +34,8 @@ public class ExpenseFragment extends Fragment {
     private int lastDeletedItemPosition;
     private Expense lastDeletedItem;
     private View view;
+    private List<User> users;
+    private User deletedExpenseUser;
 
     public ExpenseFragment() {
         // Required empty public constructor
@@ -87,6 +90,7 @@ public class ExpenseFragment extends Fragment {
         itemTouchHelper.attachToRecyclerView(recyclerView);
 
         getAllExpenses();
+        getAllUsers();
 
         FloatingActionButton fab = view.findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -155,6 +159,18 @@ public class ExpenseFragment extends Fragment {
                 DataBaseClient.getInstance(view.getContext()).getDataBase()
                         .iDataBase()
                         .deleteExpense(expense);
+
+                deletedExpenseUser = new User();
+                for(User u : users){
+                    if(expense.getName().equals(u.getName())){
+                        deletedExpenseUser = u;
+                        u.setAmount(u.getAmount() - expense.getAmount());
+                        DataBaseClient.getInstance(view.getContext()).getDataBase()
+                                .iDataBase()
+                                .updateUser(u);
+                        break;
+                    }
+                }
                 return null;
             }
 
@@ -192,6 +208,11 @@ public class ExpenseFragment extends Fragment {
                 DataBaseClient.getInstance(view.getContext()).getDataBase()
                         .iDataBase()
                         .createExpense(expense);
+                deletedExpenseUser.setAmount(deletedExpenseUser.getAmount() + expense.getAmount());
+                DataBaseClient.getInstance(view.getContext()).getDataBase()
+                        .iDataBase()
+                        .updateUser(deletedExpenseUser);
+                deletedExpenseUser = null;
                 return null;
             }
 
@@ -207,8 +228,26 @@ public class ExpenseFragment extends Fragment {
         rae.execute();
     }
 
-    @Override
-    public void onDetach() {
-        super.onDetach();
+    public void getAllUsers() {
+
+        class GetAllUsers extends AsyncTask<Void, Void, List<User>>{
+
+            @Override
+            protected List<User> doInBackground(Void... voids) {
+                return DataBaseClient.getInstance(view.getContext()).getDataBase()
+                        .iDataBase()
+                        .getAllUsers();
+            }
+
+            @Override
+            protected void onPostExecute(List<User> usrs) {
+                super.onPostExecute(usrs);
+                users = new ArrayList<>();
+                users = usrs;
+            }
+        }
+
+        GetAllUsers gau = new GetAllUsers();
+        gau.execute();
     }
 }

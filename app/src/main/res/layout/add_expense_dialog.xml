@@ -27,11 +27,13 @@
             android:orientation="vertical">
 
             <android.support.design.widget.TextInputLayout
+                android:id="@+id/nameLayout"
                 style="@style/Widget.MaterialComponents.TextInputLayout.FilledBox.Dense"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:textColorHint="@color/colorPrimary"
                 app:boxStrokeColor="@color/colorPrimary"
+                app:errorEnabled="true"
                 android:layout_margin="8dp">
 
                 <android.support.design.widget.TextInputEditText
@@ -40,7 +42,10 @@
                     android:layout_height="wrap_content"
                     android:textColor="@android:color/black"
                     android:hint="Name"
-                    android:inputType="textCapSentences"
+                    android:focusable="false"
+                    android:focusableInTouchMode="false"
+                    android:longClickable="false"
+                    android:inputType="none"
                     android:maxLines="1" />
 
             </android.support.design.widget.TextInputLayout>
@@ -80,7 +85,7 @@
                     android:layout_height="wrap_content"
                     android:textColor="@android:color/black"
                     android:hint="Amount"
-                    android:inputType="numberDecimal"
+                    android:inputType="numberSigned"
                     android:maxLines="1" />
 
             </android.support.design.widget.TextInputLayout>
