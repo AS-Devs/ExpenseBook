@@ -13,14 +13,20 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.support.v7.widget.helper.ItemTouchHelper;
+import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
+import asdevs.expensebook.HomeActivity;
 import asdevs.expensebook.R;
 import asdevs.expensebook.adapter.ExpenseAdapter;
 import asdevs.expensebook.database.DataBaseClient;
@@ -50,9 +56,11 @@ public class ExpenseFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         view = inflater.inflate(R.layout.activity_main, container, false);
+
         Toolbar toolbar = view.findViewById(R.id.toolbar);
-        ((AppCompatActivity)getActivity()).setSupportActionBar(toolbar);
+        ((AppCompatActivity) getActivity()).setSupportActionBar(toolbar);
         toolbar.setSubtitle("Manage Expenses");
+        setHasOptionsMenu(true);
 
         // Set Up Recycler View
         recyclerView = view.findViewById(R.id.recyclerView);
@@ -161,8 +169,8 @@ public class ExpenseFragment extends Fragment {
                         .deleteExpense(expense);
 
                 deletedExpenseUser = new User();
-                for(User u : users){
-                    if(expense.getName().equals(u.getName())){
+                for (User u : users) {
+                    if (expense.getName().equals(u.getName())) {
                         deletedExpenseUser = u;
                         u.setAmount(u.getAmount() - expense.getAmount());
                         DataBaseClient.getInstance(view.getContext()).getDataBase()
@@ -230,7 +238,7 @@ public class ExpenseFragment extends Fragment {
 
     public void getAllUsers() {
 
-        class GetAllUsers extends AsyncTask<Void, Void, List<User>>{
+        class GetAllUsers extends AsyncTask<Void, Void, List<User>> {
 
             @Override
             protected List<User> doInBackground(Void... voids) {
@@ -249,5 +257,31 @@ public class ExpenseFragment extends Fragment {
 
         GetAllUsers gau = new GetAllUsers();
         gau.execute();
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.toolbar_items, menu);
+        super.onCreateOptionsMenu(menu, inflater);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_import:
+                Toast.makeText(view.getContext(), "Import", Toast.LENGTH_SHORT).show();
+                break;
+            case R.id.action_export:
+                try {
+                    ((HomeActivity) Objects.requireNonNull(getActivity())).exportDatabaseToStorage();
+                } catch (NullPointerException ex) {
+                    Log.e("Export DB: ", ex.getMessage());
+                    Toast.makeText(view.getContext(), "Something went wrong!", Toast.LENGTH_LONG).show();
+                }
+                break;
+            default:
+                break;
+        }
+        return super.onOptionsItemSelected(item);
     }
 }

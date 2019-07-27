@@ -1,11 +1,13 @@
 package asdevs.expensebook.database;
 
 import android.arch.persistence.room.Room;
+import android.arch.persistence.room.RoomDatabase;
 import android.content.Context;
 
 public class DataBaseClient {
     private Context mCtx;
     private static DataBaseClient mInstance;
+    public static String DATABASE_NAME = "Expenses";
 
     //our app database object
     private DataBase dataBase;
@@ -15,7 +17,9 @@ public class DataBaseClient {
 
         //creating the app database with Room database builder
         //MyToDos is the name of the database
-        dataBase = Room.databaseBuilder(mCtx, DataBase.class, "Expenses").fallbackToDestructiveMigration().build();
+        dataBase = Room.databaseBuilder(mCtx, DataBase.class, DATABASE_NAME).fallbackToDestructiveMigration()
+                .setJournalMode(RoomDatabase.JournalMode.TRUNCATE)
+                .build();
     }
 
     public static synchronized DataBaseClient getInstance(Context mCtx) {
@@ -28,4 +32,5 @@ public class DataBaseClient {
     public DataBase getDataBase() {
         return dataBase;
     }
+
 }
