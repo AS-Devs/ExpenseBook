@@ -27,6 +27,7 @@
         android:layout_height="match_parent"
         android:layout_marginTop="?actionBarSize"
         android:scrollbars="vertical"
+        android:animateLayoutChanges="true"
         app:layoutManager="android.support.v7.widget.LinearLayoutManager"/>
 
     <android.support.design.widget.FloatingActionButton

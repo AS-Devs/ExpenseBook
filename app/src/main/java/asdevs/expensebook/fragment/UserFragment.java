@@ -52,7 +52,7 @@ public class UserFragment extends Fragment {
         view = inflater.inflate(R.layout.activity_main, container, false);
 
         Toolbar toolbar = view.findViewById(R.id.toolbar);
-        ((AppCompatActivity) getActivity()).setSupportActionBar(toolbar);
+        ((AppCompatActivity) Objects.requireNonNull(getActivity())).setSupportActionBar(toolbar);
         toolbar.setSubtitle("Manage Users");
         setHasOptionsMenu(true);
 
@@ -65,12 +65,7 @@ public class UserFragment extends Fragment {
         getAllUsers();
 
         FloatingActionButton fab = view.findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                buildDialogFragment();
-            }
-        });
+        fab.setOnClickListener(view -> buildDialogFragment());
         return view;
     }
 
@@ -131,7 +126,12 @@ public class UserFragment extends Fragment {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_import:
-                Toast.makeText(view.getContext(), "Import", Toast.LENGTH_SHORT).show();
+                try {
+                    ((HomeActivity) Objects.requireNonNull(getActivity())).importDatabaseFromStorage();
+                } catch (NullPointerException ex) {
+                    Log.e("Import DB: ", ex.getMessage());
+                    Toast.makeText(view.getContext(), "Something went wrong!", Toast.LENGTH_LONG).show();
+                }
                 break;
             case R.id.action_export:
                 try {

@@ -2,6 +2,7 @@ package asdevs.expensebook.fragment;
 
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
@@ -53,12 +54,12 @@ public class ExpenseFragment extends Fragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         view = inflater.inflate(R.layout.activity_main, container, false);
 
         Toolbar toolbar = view.findViewById(R.id.toolbar);
-        ((AppCompatActivity) getActivity()).setSupportActionBar(toolbar);
+        ((AppCompatActivity) Objects.requireNonNull(getActivity())).setSupportActionBar(toolbar);
         toolbar.setSubtitle("Manage Expenses");
         setHasOptionsMenu(true);
 
@@ -71,17 +72,17 @@ public class ExpenseFragment extends Fragment {
         // Recycler view swipe gesture
         ItemTouchHelper.SimpleCallback simpleItemTouchCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.RIGHT) {
             @Override
-            public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
+            public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
                 return false;
             }
 
             @Override
-            public void clearView(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder) {
+            public void clearView(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder) {
                 super.clearView(recyclerView, viewHolder);
             }
 
             @Override
-            public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
+            public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
                 //awesome code when swiping right to remove recycler card and delete SQLite data
                 if (direction == ItemTouchHelper.RIGHT) {
                     lastDeletedItemPosition = viewHolder.getAdapterPosition();
@@ -101,12 +102,7 @@ public class ExpenseFragment extends Fragment {
         getAllUsers();
 
         FloatingActionButton fab = view.findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                buildDialogFragment();
-            }
-        });
+        fab.setOnClickListener(view -> buildDialogFragment());
         return view;
     }
 
@@ -269,7 +265,12 @@ public class ExpenseFragment extends Fragment {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_import:
-                Toast.makeText(view.getContext(), "Import", Toast.LENGTH_SHORT).show();
+                try {
+                    ((HomeActivity) Objects.requireNonNull(getActivity())).importDatabaseFromStorage();
+                } catch (NullPointerException ex) {
+                    Log.e("Import DB: ", ex.getMessage());
+                    Toast.makeText(view.getContext(), "Something went wrong!", Toast.LENGTH_LONG).show();
+                }
                 break;
             case R.id.action_export:
                 try {

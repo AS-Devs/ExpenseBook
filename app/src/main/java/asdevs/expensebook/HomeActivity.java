@@ -1,7 +1,9 @@
 package asdevs.expensebook;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.database.sqlite.SQLiteException;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.design.widget.BottomNavigationView;
@@ -29,6 +31,7 @@ public class HomeActivity extends AppCompatActivity {
 
     View container;
     public static final int REQUEST_WRITE_STORAGE = 112;
+    public static final int REQUEST_READ_STORAGE = 113;
 
     private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
             = item -> {
@@ -85,6 +88,22 @@ public class HomeActivity extends AppCompatActivity {
         }
     }
 
+    public void importDatabaseFromStorage() {
+        boolean hasPermission = (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED);
+        if (!hasPermission) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                    REQUEST_READ_STORAGE);
+        } else {
+            if (importDb()) {
+                reStartActivity();
+                Toast.makeText(this, "Import Successful", Toast.LENGTH_LONG).show();
+            } else {
+                Toast.makeText(this, "Something went wrong! Please make sure that your backup is in your Internal Storage!", Toast.LENGTH_LONG).show();
+            }
+        }
+    }
+
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -99,6 +118,18 @@ public class HomeActivity extends AppCompatActivity {
                     }
                 } else {
                     Toast.makeText(this, "The app was not allowed to write to your storage. Hence, it cannot export data to storage. Please consider granting it this permission", Toast.LENGTH_LONG).show();
+                }
+            }
+            case REQUEST_READ_STORAGE: {
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    if (importDb()) {
+                        reStartActivity();
+                        Toast.makeText(this, "Import Successful", Toast.LENGTH_LONG).show();
+                    } else {
+                        Toast.makeText(this, "Something went wrong!", Toast.LENGTH_LONG).show();
+                    }
+                } else {
+                    Toast.makeText(this, "The app was not allowed to write to your storage. Hence, it cannot import data to storage. Please consider granting it this permission", Toast.LENGTH_LONG).show();
                 }
             }
         }
@@ -133,4 +164,44 @@ public class HomeActivity extends AppCompatActivity {
             return false;
         }
     }
+
+    private boolean importDb() {
+        try {
+            // Get the Database backup file from internal storage
+            String dbBackupFilePath = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + DATABASE_NAME + ".db";
+            File dbBackupFile = new File(dbBackupFilePath);
+            FileInputStream fis = new FileInputStream(dbBackupFile);
+
+            // Open the empty db as the output stream
+            FileOutputStream fos = new FileOutputStream(this.getDatabasePath(DATABASE_NAME).getAbsolutePath());
+
+            // Transfer bytes from the input file to the output file
+            byte[] buffer = new byte[1024];
+            int length;
+            while ((length = fis.read(buffer)) > 0) {
+                fos.write(buffer, 0, length);
+            }
+
+            // Close the streams
+            fos.flush();
+            fos.close();
+            fis.close();
+
+            return true;
+        } catch (IOException ex) {
+            Log.e("Import_DB_IO: ", ex.getMessage());
+            return false;
+        } catch (SQLiteException ex) {
+            Log.e("Import_DB_SQLITE: ", ex.getMessage());
+            return false;
+        }
+    }
+
+    private void reStartActivity(){
+        Intent intent = new Intent(HomeActivity.this, HomeActivity.class);
+        startActivity(intent); // start same activity
+        finish(); // destroy older activity
+        overridePendingTransition(0, 0);
+    }
+
 }
