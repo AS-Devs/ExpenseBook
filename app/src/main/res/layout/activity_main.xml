@@ -5,6 +5,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:focusableInTouchMode="true"
     android:animateLayoutChanges="true">
 
     <android.support.design.widget.AppBarLayout
@@ -27,8 +28,16 @@
         android:layout_height="match_parent"
         android:layout_marginTop="?actionBarSize"
         android:scrollbars="vertical"
-        android:animateLayoutChanges="true"
         app:layoutManager="android.support.v7.widget.LinearLayoutManager"/>
+
+    <TextView
+        android:id="@+id/empty_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:visibility="gone"
+        android:textSize="32sp"
+        android:text="@string/no_data_available" />
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/fab"

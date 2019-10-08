@@ -21,6 +21,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -38,6 +39,8 @@ public class ExpenseFragment extends Fragment {
 
     private List<Expense> expenses = new ArrayList<>();
     private RecyclerView recyclerView;
+    private TextView emptyView;
+    private ExpenseAdapter adapter;
     private int lastDeletedItemPosition;
     private Expense lastDeletedItem;
     private View view;
@@ -63,6 +66,7 @@ public class ExpenseFragment extends Fragment {
         toolbar.setSubtitle("Manage Expenses");
         setHasOptionsMenu(true);
 
+        emptyView = view.findViewById(R.id.empty_view);
         // Set Up Recycler View
         recyclerView = view.findViewById(R.id.recyclerView);
         recyclerView.hasFixedSize();
@@ -88,7 +92,8 @@ public class ExpenseFragment extends Fragment {
                     lastDeletedItemPosition = viewHolder.getAdapterPosition();
                     lastDeletedItem = expenses.get(lastDeletedItemPosition);
                     expenses.remove(lastDeletedItemPosition);
-                    recyclerView.setAdapter(new ExpenseAdapter(expenses, ExpenseFragment.this));
+                    //recyclerView.setAdapter(new ExpenseAdapter(expenses, ExpenseFragment.this));
+                    adapter.notifyDataSetChanged();
                     deleteExpense(lastDeletedItem);
                     undoSnackBar();
                 }
@@ -142,10 +147,16 @@ public class ExpenseFragment extends Fragment {
             protected void onPostExecute(List<Expense> exps) {
                 super.onPostExecute(exps);
                 if (exps == null || exps.size() == 0) {
-                    Toast.makeText(view.getContext(), "No Data Found!", Toast.LENGTH_LONG).show();
+                    recyclerView.setVisibility(View.GONE);
+                    emptyView.setVisibility(View.VISIBLE);
+                    //Toast.makeText(view.getContext(), "No Data Found!", Toast.LENGTH_LONG).show();
                 } else {
-                    expenses = exps;
-                    recyclerView.setAdapter(new ExpenseAdapter(expenses, ExpenseFragment.this));
+                    recyclerView.setVisibility(View.VISIBLE);
+                    emptyView.setVisibility(View.GONE);
+                    expenses.clear();
+                    expenses.addAll(exps);
+                    adapter = new ExpenseAdapter(expenses, ExpenseFragment.this);
+                    recyclerView.setAdapter(adapter);
                 }
             }
         }
@@ -181,6 +192,13 @@ public class ExpenseFragment extends Fragment {
             @Override
             protected void onPostExecute(Void aVoid) {
                 super.onPostExecute(aVoid);
+                if(expenses == null || expenses.size() == 0){
+                    recyclerView.setVisibility(View.GONE);
+                    emptyView.setVisibility(View.VISIBLE);
+                } else{
+                    recyclerView.setVisibility(View.VISIBLE);
+                    emptyView.setVisibility(View.GONE);
+                }
                 undoSnackBar();
             }
         }
@@ -192,13 +210,10 @@ public class ExpenseFragment extends Fragment {
         //view = view.findViewById(R.id.parentViewGroup);
         Snackbar snackbar = Snackbar.make(view, "1 Item Removed!",
                 Snackbar.LENGTH_LONG);
-        snackbar.setAction("UNDO", new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                expenses.add(lastDeletedItemPosition, lastDeletedItem);
-                recyclerView.setAdapter(new ExpenseAdapter(expenses, ExpenseFragment.this));
-                reAddExpense(lastDeletedItem);
-            }
+        snackbar.setAction("UNDO", v -> {
+            expenses.add(lastDeletedItemPosition, lastDeletedItem);
+            adapter.notifyDataSetChanged();
+            reAddExpense(lastDeletedItem);
         });
         snackbar.show();
     }
@@ -223,6 +238,8 @@ public class ExpenseFragment extends Fragment {
             @Override
             protected void onPostExecute(Void aVoid) {
                 super.onPostExecute(aVoid);
+                recyclerView.setVisibility(View.VISIBLE);
+                emptyView.setVisibility(View.GONE);
                 Snackbar undoSnackBar = Snackbar.make(view, "Item Restored",
                         Snackbar.LENGTH_LONG);
                 undoSnackBar.show();

@@ -5,6 +5,7 @@ import android.app.Dialog;
 import android.content.DialogInterface;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.TextInputEditText;
 import android.support.design.widget.TextInputLayout;
 import android.support.v4.app.DialogFragment;
@@ -35,7 +36,6 @@ public class AddExpenseFragment extends DialogFragment {
     public static String TAG = "AddExpenseDialog";
     private TextInputEditText nameText, dateText, amountText, typeText;
     private TextInputLayout nameLayout, dateLayout;
-    private Button createExpense;
     private Expense exp;
     Calendar calendar = Calendar.getInstance();
     private View view;
@@ -54,7 +54,7 @@ public class AddExpenseFragment extends DialogFragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         super.onCreateView(inflater, container, savedInstanceState);
         view = inflater.inflate(R.layout.add_expense_dialog, container, false);
 
@@ -64,12 +64,7 @@ public class AddExpenseFragment extends DialogFragment {
         // Toolbar
         Toolbar toolbar = view.findViewById(R.id.toolbar);
         toolbar.setNavigationIcon(R.drawable.ic_close);
-        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                dismiss();
-            }
-        });
+        toolbar.setNavigationOnClickListener(v -> dismiss());
 
         // Text Input IDs
         nameText = view.findViewById(R.id.nameText);
@@ -78,7 +73,7 @@ public class AddExpenseFragment extends DialogFragment {
         dateLayout = view.findViewById(R.id.dateLayout);
         amountText = view.findViewById(R.id.amountText);
         typeText = view.findViewById(R.id.typeText);
-        createExpense = view.findViewById(R.id.create);
+        Button createExpense = view.findViewById(R.id.create);
 
         nameLayout.setEnabled(false);
         nameLayout.setError("No Users Found");
@@ -110,44 +105,25 @@ public class AddExpenseFragment extends DialogFragment {
             }
         }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH));
 
-        dateLayout.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                datePickerDialog.show();
-            }
-        });
-        dateText.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                datePickerDialog.show();
-            }
+        dateLayout.setOnClickListener(view -> datePickerDialog.show());
+        dateText.setOnClickListener(view -> datePickerDialog.show());
+
+        nameLayout.setOnClickListener(v -> {
+            AlertDialog mDialog = userDialog.create();
+            mDialog.show();
         });
 
-        nameLayout.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                AlertDialog mDialog = userDialog.create();
-                mDialog.show();
-            }
+        nameText.setOnClickListener(v -> {
+            AlertDialog mDialog = userDialog.create();
+            mDialog.show();
         });
 
-        nameText.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                AlertDialog mDialog = userDialog.create();
-                mDialog.show();
+        createExpense.setOnClickListener(v -> {
+            if(exp == null) {
+                CreateExpense(v);
             }
-        });
-
-        createExpense.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if(exp == null) {
-                    CreateExpense(v);
-                }
-                else{
-                    UpdateExpense(v);
-                }
+            else{
+                UpdateExpense(v);
             }
         });
         return view;
@@ -171,7 +147,7 @@ public class AddExpenseFragment extends DialogFragment {
         }
         else{
             String name = nameText.getText().toString();
-            Double amount = Double.parseDouble(amountText.getText().toString());
+            double amount = Double.parseDouble(amountText.getText().toString());
             String type = typeText.getText().toString();
             SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy", Locale.ENGLISH);
             Date date = null;
@@ -224,7 +200,7 @@ public class AddExpenseFragment extends DialogFragment {
         }
         else{
             String name = nameText.getText().toString();
-            Double amount = Double.parseDouble(amountText.getText().toString());
+            double amount = Double.parseDouble(amountText.getText().toString());
             String type = typeText.getText().toString();
             SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy", Locale.ENGLISH);
             Date date = null;
@@ -284,12 +260,7 @@ public class AddExpenseFragment extends DialogFragment {
                 dialogInterface.dismiss();
             }
         });
-        userDialog.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.dismiss();
-            }
-        });
+        userDialog.setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss());
     }
 
     public void getAllUsers() {

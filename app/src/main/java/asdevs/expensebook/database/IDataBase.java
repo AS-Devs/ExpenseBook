@@ -37,4 +37,7 @@ public interface IDataBase {
 
     @Update
     void updateUser(User user);
+
+    @Update
+    void resetUserExpense(User user);
 }

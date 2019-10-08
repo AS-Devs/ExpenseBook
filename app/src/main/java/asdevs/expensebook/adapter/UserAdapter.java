@@ -1,5 +1,7 @@
 package asdevs.expensebook.adapter;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -42,21 +44,43 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
         return users.size();
     }
 
-    class ViewHolder extends RecyclerView.ViewHolder{
+    class ViewHolder extends RecyclerView.ViewHolder {
 
         private TextView name, amount;
         private View view;
 
-        public ViewHolder(@NonNull View itemView) {
+        ViewHolder(@NonNull View itemView) {
             super(itemView);
             view = itemView;
             name = itemView.findViewById(R.id.name);
             amount = itemView.findViewById(R.id.amount);
         }
 
-        void setDetails(final User user){
-            name.setText(user.getName().toString());
+        void setDetails(final User user) {
+            name.setText(user.getName());
             amount.setText("Rs. " + user.getAmount());
+
+            // Click handler
+            view.setOnClickListener(v -> {
+                AlertDialog alert = new AlertDialog.Builder(v.getContext())
+                        .setTitle("Reset or Delete the User!")
+                        .setMessage("Either Reset the User details or Delete the User Altogether.")
+                        .setNeutralButton("Reset", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                context.resetUser(user);
+                            }
+                        })
+                        .setPositiveButton("Delete", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                context.deleteUser(user);
+                            }
+                        })
+                        .setNegativeButton("Cancel", null)
+                        .setIcon(R.drawable.ic_user)
+                        .show();
+            });
         }
     }
 }

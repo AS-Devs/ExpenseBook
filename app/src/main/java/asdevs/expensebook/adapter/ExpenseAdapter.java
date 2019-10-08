@@ -74,16 +74,13 @@ public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ViewHold
             date.setText(strDate);
 
             // Attaching Click Listener
-            view.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Bundle b = new Bundle();
-                    b.putSerializable("expense", expense);
-                    AddExpenseFragment expenseFragment = new AddExpenseFragment();
-                    expenseFragment.setArguments(b);
-                    FragmentTransaction ft = context.getChildFragmentManager().beginTransaction();
-                    expenseFragment.show(ft, "UpdateExpense");
-                }
+            view.setOnClickListener(v -> {
+                Bundle b = new Bundle();
+                b.putSerializable("expense", expense);
+                AddExpenseFragment expenseFragment = new AddExpenseFragment();
+                expenseFragment.setArguments(b);
+                FragmentTransaction ft = context.getChildFragmentManager().beginTransaction();
+                expenseFragment.show(ft, "UpdateExpense");
             });
         }
     }

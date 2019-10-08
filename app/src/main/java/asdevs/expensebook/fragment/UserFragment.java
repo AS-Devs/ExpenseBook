@@ -20,6 +20,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -30,6 +31,7 @@ import asdevs.expensebook.HomeActivity;
 import asdevs.expensebook.R;
 import asdevs.expensebook.adapter.UserAdapter;
 import asdevs.expensebook.database.DataBaseClient;
+import asdevs.expensebook.model.Expense;
 import asdevs.expensebook.model.User;
 
 public class UserFragment extends Fragment {
@@ -37,7 +39,9 @@ public class UserFragment extends Fragment {
     private View view;
     private List<User> users = new ArrayList<>();
     private RecyclerView recyclerView;
-    private int lastDeletedItemPosition;
+    private TextView emptyView;
+    private UserAdapter adapter;
+    //private int lastDeletedItemPosition;
 
     public UserFragment() {
     }
@@ -56,6 +60,7 @@ public class UserFragment extends Fragment {
         toolbar.setSubtitle("Manage Users");
         setHasOptionsMenu(true);
 
+        emptyView = view.findViewById(R.id.empty_view);
         // Set Up Recycler View
         recyclerView = view.findViewById(R.id.recyclerView);
         recyclerView.hasFixedSize();
@@ -104,16 +109,98 @@ public class UserFragment extends Fragment {
             protected void onPostExecute(List<User> usrs) {
                 super.onPostExecute(usrs);
                 if (usrs == null || usrs.size() == 0) {
-                    Toast.makeText(view.getContext(), "No Data Found!", Toast.LENGTH_LONG).show();
+                    //Toast.makeText(view.getContext(), "No Data Found!", Toast.LENGTH_LONG).show();
+                    recyclerView.setVisibility(View.GONE);
+                    emptyView.setVisibility(View.VISIBLE);
                 } else {
+                    recyclerView.setVisibility(View.VISIBLE);
+                    emptyView.setVisibility(View.GONE);
                     users = usrs;
-                    recyclerView.setAdapter(new UserAdapter(users, UserFragment.this));
+                    adapter = new UserAdapter(users, UserFragment.this);
+                    recyclerView.setAdapter(adapter);
                 }
             }
         }
 
         GetAllUsers gau = new GetAllUsers();
         gau.execute();
+    }
+
+    public void resetUser(final User user) {
+
+        class ResetUserExpense extends AsyncTask<Void, Void, Void> {
+
+            @Override
+            protected Void doInBackground(Void... voids) {
+                List<Expense> expenses = DataBaseClient.getInstance(view.getContext()).getDataBase()
+                        .iDataBase()
+                        .getAllExpenses();
+                for (Expense ex : expenses) {
+                    if (user.getName().equals(ex.getName())) {
+                        DataBaseClient.getInstance(view.getContext()).getDataBase()
+                                .iDataBase()
+                                .deleteExpense(ex);
+                    }
+                }
+                user.setAmount(0);
+                DataBaseClient.getInstance(view.getContext()).getDataBase()
+                        .iDataBase()
+                        .updateUser(user);
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(Void aVoid) {
+                super.onPostExecute(aVoid);
+                Toast.makeText(getContext(), "User Reset Successful", Toast.LENGTH_LONG).show();
+                adapter.notifyDataSetChanged();
+            }
+        }
+
+        ResetUserExpense rue = new ResetUserExpense();
+        rue.execute();
+    }
+
+    public void deleteUser(final User user) {
+
+        class DeleteUser extends AsyncTask<Void, Void, Void> {
+
+            @Override
+            protected Void doInBackground(Void... voids) {
+                List<Expense> expenses = DataBaseClient.getInstance(view.getContext()).getDataBase()
+                        .iDataBase()
+                        .getAllExpenses();
+                for (Expense ex : expenses) {
+                    if (user.getName().equals(ex.getName())) {
+                        DataBaseClient.getInstance(view.getContext()).getDataBase()
+                                .iDataBase()
+                                .deleteExpense(ex);
+                    }
+                }
+                DataBaseClient.getInstance(view.getContext()).getDataBase()
+                        .iDataBase()
+                        .deleteUser(user);
+                users.remove(user);
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(Void aVoid) {
+                super.onPostExecute(aVoid);
+                if(users == null || users.size() == 0){
+                    recyclerView.setVisibility(View.GONE);
+                    emptyView.setVisibility(View.VISIBLE);
+                } else{
+                    recyclerView.setVisibility(View.VISIBLE);
+                    emptyView.setVisibility(View.GONE);
+                }
+                adapter.notifyDataSetChanged();
+                Toast.makeText(view.getContext(), "User Deleted Successfully", Toast.LENGTH_SHORT).show();
+            }
+        }
+
+        DeleteUser du = new DeleteUser();
+        du.execute();
     }
 
     @Override

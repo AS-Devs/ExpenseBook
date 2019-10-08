@@ -9,6 +9,7 @@ import android.os.Environment;
 import android.support.design.widget.BottomNavigationView;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -30,6 +31,9 @@ import static asdevs.expensebook.database.DataBaseClient.DATABASE_NAME;
 public class HomeActivity extends AppCompatActivity {
 
     View container;
+    FragmentManager fragmentManager;
+    ExpenseFragment expenseFragment;
+    UserFragment userFragment;
     public static final int REQUEST_WRITE_STORAGE = 112;
     public static final int REQUEST_READ_STORAGE = 113;
 
@@ -37,10 +41,12 @@ public class HomeActivity extends AppCompatActivity {
             = item -> {
         switch (item.getItemId()) {
             case R.id.navigation_expense:
-                loadFragment(new ExpenseFragment());
+                loadFragment(expenseFragment, "Expense");
+                //changeFragment(0);
                 return true;
             case R.id.navigation_user:
-                loadFragment(new UserFragment());
+                //changeFragment(1);
+                loadFragment(userFragment, "User");
                 return true;
         }
         return false;
@@ -51,20 +57,36 @@ public class HomeActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
         container = findViewById(R.id.frame_container);
+        // Creating Fragments
+        expenseFragment = new ExpenseFragment();
+        userFragment = new UserFragment();
+        // Get Fragment Manager
+        fragmentManager = getSupportFragmentManager();
         // Bottom Navigation Bar
         BottomNavigationView navView = findViewById(R.id.nav_view);
         navView.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
         navView.setSelectedItemId(R.id.navigation_expense);
         // Load default fragment
-        loadFragment(new ExpenseFragment());
+        //loadFragment(new ExpenseFragment(), "Expense");
     }
 
-    private void loadFragment(Fragment fragment) {
-        // load fragment
-        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-        getSupportFragmentManager().popBackStack();
-        transaction.replace(R.id.frame_container, fragment);
-        transaction.commit();
+    private void loadFragment(Fragment fragment, String tag) {
+        FragmentTransaction transaction = fragmentManager.beginTransaction();
+
+        Fragment visibleFragment = fragmentManager.getPrimaryNavigationFragment();
+        if (visibleFragment != null) {
+            transaction.detach(visibleFragment);
+        }
+        Fragment frag = fragmentManager.findFragmentByTag(tag);
+        if (frag == null) {
+            transaction.add(R.id.frame_container, fragment, tag);
+        } else {
+            //fragmentManager.popBackStack();
+            transaction.attach(fragment);
+        }
+        transaction.setPrimaryNavigationFragment(fragment);
+        transaction.setReorderingAllowed(true);
+        transaction.commitNowAllowingStateLoss();
     }
 
     public void exportDatabaseToStorage() {
@@ -197,7 +219,7 @@ public class HomeActivity extends AppCompatActivity {
         }
     }
 
-    private void reStartActivity(){
+    private void reStartActivity() {
         Intent intent = new Intent(HomeActivity.this, HomeActivity.class);
         startActivity(intent); // start same activity
         finish(); // destroy older activity

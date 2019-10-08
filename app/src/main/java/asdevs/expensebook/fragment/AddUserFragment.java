@@ -22,7 +22,6 @@ public class AddUserFragment extends DialogFragment {
 
     public static String TAG = "AddUserDialog";
     private TextInputEditText nameText;
-    private Button createUser;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -51,24 +50,14 @@ public class AddUserFragment extends DialogFragment {
         // Toolbar
         Toolbar toolbar = view.findViewById(R.id.toolbar);
         toolbar.setNavigationIcon(R.drawable.ic_close);
-        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                dismiss();
-            }
-        });
+        toolbar.setNavigationOnClickListener(v -> dismiss());
         toolbar.setTitle("Create User");
 
         // Text Input IDs
         nameText = view.findViewById(R.id.nameText);
-        createUser = view.findViewById(R.id.create);
+        Button createUser = view.findViewById(R.id.create);
 
-        createUser.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                CreateUser(v);
-            }
-        });
+        createUser.setOnClickListener(this::CreateUser);
 
         return view;
     }
@@ -106,4 +95,5 @@ public class AddUserFragment extends DialogFragment {
             saveExpense.execute();
         }
     }
+
 }
