@@ -3,7 +3,7 @@ apply plugin: 'com.android.application'
 android {
     compileSdkVersion 28
     defaultConfig {
-        applicationId "asdevs.expensebook"
+        applicationId "dev.asdevs.expensebook"
         minSdkVersion 24
         targetSdkVersion 28
         versionCode 3
@@ -14,12 +14,14 @@ android {
         release {
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            debuggable = false
         }
     }
     compileOptions {
         sourceCompatibility = '1.8'
         targetCompatibility = '1.8'
     }
+    buildToolsVersion = '29.0.2'
 }
 
 def room_version = "1.1.1"
