@@ -6,8 +6,8 @@ android {
         applicationId "dev.asdevs.expensebook"
         minSdkVersion 24
         targetSdkVersion 28
-        versionCode 3
-        versionName "1.3"
+        versionCode 4
+        versionName "1.3.1"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {

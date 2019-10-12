@@ -1,5 +1,8 @@
 package dev.asdevs.expensebook.fragment;
 
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -81,18 +84,22 @@ public class ExpenseFragment extends Fragment {
             }
 
             @Override
-            public void clearView(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder) {
-                super.clearView(recyclerView, viewHolder);
+            public void onChildDraw(@NonNull Canvas c, @NonNull RecyclerView recyclerView,
+                                    @NonNull RecyclerView.ViewHolder viewHolder, float dX, float dY,
+                                    int actionState, boolean isCurrentlyActive) {
+                View itemView = viewHolder.itemView;
+                final ColorDrawable background = new ColorDrawable(Color.RED);
+                background.setBounds(0, itemView.getTop(), (int) (itemView.getLeft() + dX), itemView.getBottom());
+                background.draw(c);
+                super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
             }
 
             @Override
             public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
-                //awesome code when swiping right to remove recycler card and delete SQLite data
                 if (direction == ItemTouchHelper.RIGHT) {
                     lastDeletedItemPosition = viewHolder.getAdapterPosition();
                     lastDeletedItem = expenses.get(lastDeletedItemPosition);
                     expenses.remove(lastDeletedItemPosition);
-                    //recyclerView.setAdapter(new ExpenseAdapter(expenses, ExpenseFragment.this));
                     adapter.notifyDataSetChanged();
                     deleteExpense(lastDeletedItem);
                     undoSnackBar();
@@ -192,10 +199,10 @@ public class ExpenseFragment extends Fragment {
             @Override
             protected void onPostExecute(Void aVoid) {
                 super.onPostExecute(aVoid);
-                if(expenses == null || expenses.size() == 0){
+                if (expenses == null || expenses.size() == 0) {
                     recyclerView.setVisibility(View.GONE);
                     emptyView.setVisibility(View.VISIBLE);
-                } else{
+                } else {
                     recyclerView.setVisibility(View.VISIBLE);
                     emptyView.setVisibility(View.GONE);
                 }

@@ -15,7 +15,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.DatePicker;
 import android.widget.Toast;
 
 import java.text.ParseException;
@@ -92,17 +91,15 @@ public class AddExpenseFragment extends DialogFragment {
         }
 
         // Default date set
-        String month = String.format("%02d", calendar.get(Calendar.MONTH) + 1);
-        String day = String.format("%02d", calendar.get(Calendar.DAY_OF_MONTH));
+        String month = String.format(Locale.getDefault(),"%02d", calendar.get(Calendar.MONTH) + 1);
+        String day = String.format(Locale.getDefault(), "%02d", calendar.get(Calendar.DAY_OF_MONTH));
         dateText.setText(day + "-" + month + "-" + calendar.get(Calendar.YEAR));
 
         // Date Picker
-        final DatePickerDialog datePickerDialog = new DatePickerDialog(view.getContext(), new DatePickerDialog.OnDateSetListener() {
-            public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
-                String month = String.format("%02d", monthOfYear + 1);
-                String day = String.format("%02d", dayOfMonth);
-                dateText.setText(day + "-" + month + "-" + year);
-            }
+        final DatePickerDialog datePickerDialog = new DatePickerDialog(view.getContext(), (view, year, monthOfYear, dayOfMonth) -> {
+            String month1 = String.format(Locale.getDefault(), "%02d", monthOfYear + 1);
+            String day1 = String.format(Locale.getDefault(), "%02d", dayOfMonth);
+            dateText.setText(day1 + "-" + month1 + "-" + year);
         }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH));
 
         dateLayout.setOnClickListener(view -> datePickerDialog.show());
@@ -185,6 +182,7 @@ public class AddExpenseFragment extends DialogFragment {
                     Toast.makeText(view.getContext(), "Expense Successfully Created!", Toast.LENGTH_LONG).show();
                     ExpenseFragment ef = (ExpenseFragment)getParentFragment();
                     ef.getAllExpenses();
+                    ef.getAllUsers();
                     dismiss();
                 }
             }
@@ -239,6 +237,7 @@ public class AddExpenseFragment extends DialogFragment {
                     Toast.makeText(view.getContext(), "Expense Successfully Updated!", Toast.LENGTH_LONG).show();
                     ExpenseFragment ef = (ExpenseFragment)getParentFragment();
                     ef.getAllExpenses();
+                    ef.getAllUsers();
                     dismiss();
                 }
             }
