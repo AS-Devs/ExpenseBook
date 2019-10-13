@@ -7,7 +7,6 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import java.text.SimpleDateFormat;
@@ -50,11 +49,11 @@ public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ViewHold
         return expenses.size();
     }
 
-    public class ViewHolder extends RecyclerView.ViewHolder{
+    class ViewHolder extends RecyclerView.ViewHolder{
 
         private TextView name, type, amount, date;
         private View view;
-        public RelativeLayout viewBackground, viewForeground;
+        //private RelativeLayout viewForeground;
 
         ViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -63,8 +62,7 @@ public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ViewHold
             type = itemView.findViewById(R.id.type);
             amount = itemView.findViewById(R.id.amount);
             date = itemView.findViewById(R.id.date);
-            viewBackground = view.findViewById(R.id.view_background);
-            viewForeground = view.findViewById(R.id.view_foreground);
+            //viewForeground = view.findViewById(R.id.view_foreground);
         }
 
         void setDetails(final Expense expense) {

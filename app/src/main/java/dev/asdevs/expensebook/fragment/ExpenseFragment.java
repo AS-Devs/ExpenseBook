@@ -2,7 +2,9 @@ package dev.asdevs.expensebook.fragment;
 
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -10,6 +12,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.DividerItemDecoration;
@@ -70,14 +73,43 @@ public class ExpenseFragment extends Fragment {
         setHasOptionsMenu(true);
 
         emptyView = view.findViewById(R.id.empty_view);
+
         // Set Up Recycler View
         recyclerView = view.findViewById(R.id.recyclerView);
         recyclerView.hasFixedSize();
         recyclerView.addItemDecoration(new DividerItemDecoration(view.getContext(), LinearLayoutManager.VERTICAL));
         recyclerView.setItemAnimator(new DefaultItemAnimator());
+        setUpItemTouchHelper();
 
+        // Fetching initial Data
+        getAllExpenses();
+        getAllUsers();
+
+        // Setting FAB button
+        FloatingActionButton fab = view.findViewById(R.id.fab);
+        fab.setOnClickListener(view -> buildDialogFragment());
+
+        return view;
+    }
+
+    private void setUpItemTouchHelper(){
         // Recycler view swipe gesture
+
         ItemTouchHelper.SimpleCallback simpleItemTouchCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.RIGHT) {
+
+            Drawable background;
+            Drawable xMark;
+            int xMarkMargin;
+            boolean initiated;
+
+            private void init(){
+                background = new ColorDrawable(Color.RED);
+                xMark = ContextCompat.getDrawable(view.getContext(), R.drawable.ic_delete);
+                Objects.requireNonNull(xMark).setColorFilter(Color.WHITE, PorterDuff.Mode.SRC_ATOP);
+                xMarkMargin = (int) ExpenseFragment.this.getResources().getDimension(R.dimen.activity_vertical_margin);
+                initiated = true;
+            }
+
             @Override
             public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
                 return false;
@@ -88,9 +120,37 @@ public class ExpenseFragment extends Fragment {
                                     @NonNull RecyclerView.ViewHolder viewHolder, float dX, float dY,
                                     int actionState, boolean isCurrentlyActive) {
                 View itemView = viewHolder.itemView;
-                final ColorDrawable background = new ColorDrawable(Color.RED);
+                // not sure why, but this method get's called for ViewHolder that are already swiped away
+                if (viewHolder.getAdapterPosition() == -1) {
+                    // not interested in those
+                    return;
+                }
+
+                if (!initiated) {
+                    init();
+                }
+
+                //final ColorDrawable background = new ColorDrawable(Color.RED);
+                //background.setBounds(0, itemView.getTop(), (int) (itemView.getLeft() + dX), itemView.getBottom());
+                //background.draw(c);
+
+                // draw red background
                 background.setBounds(0, itemView.getTop(), (int) (itemView.getLeft() + dX), itemView.getBottom());
                 background.draw(c);
+
+                // draw x mark
+                int itemHeight = itemView.getBottom() - itemView.getTop();
+                int intrinsicWidth = xMark.getIntrinsicWidth();
+                int intrinsicHeight = xMark.getIntrinsicWidth();
+
+                int xMarkLeft = itemView.getLeft() + xMarkMargin;
+                int xMarkRight = intrinsicWidth + xMarkMargin;
+                int xMarkTop = itemView.getTop() + (itemHeight - intrinsicHeight)/2;
+                int xMarkBottom = xMarkTop + intrinsicHeight;
+                xMark.setBounds(xMarkLeft, xMarkTop, xMarkRight, xMarkBottom);
+
+                xMark.draw(c);
+
                 super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
             }
 
@@ -109,13 +169,6 @@ public class ExpenseFragment extends Fragment {
 
         ItemTouchHelper itemTouchHelper = new ItemTouchHelper(simpleItemTouchCallback);
         itemTouchHelper.attachToRecyclerView(recyclerView);
-
-        getAllExpenses();
-        getAllUsers();
-
-        FloatingActionButton fab = view.findViewById(R.id.fab);
-        fab.setOnClickListener(view -> buildDialogFragment());
-        return view;
     }
 
     private void buildDialogFragment() {
