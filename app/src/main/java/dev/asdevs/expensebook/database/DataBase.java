@@ -1,7 +1,7 @@
 package dev.asdevs.expensebook.database;
 
-import android.arch.persistence.room.Database;
-import android.arch.persistence.room.RoomDatabase;
+import androidx.room.Database;
+import androidx.room.RoomDatabase;
 
 import dev.asdevs.expensebook.model.Expense;
 import dev.asdevs.expensebook.model.User;

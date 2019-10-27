@@ -1,8 +1,9 @@
 package dev.asdevs.expensebook.database;
 
-import android.arch.persistence.room.Room;
-import android.arch.persistence.room.RoomDatabase;
 import android.content.Context;
+
+import androidx.room.Room;
+import androidx.room.RoomDatabase;
 
 public class DataBaseClient {
     private Context mCtx;
